@@ -1,1 +1,14 @@
 # sql-dsa-prep
+
+| Day | Track            | Focus / Topics                                                              | Outcome by end of day                                                                      |
+| --- | ---------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | SQL              | Joins refresher, multi-table joins, basic CTEs                              | Complex multi-table joins and simple CTEs for analytics questions.                         |
+| 2   | SQL              | Advanced CTEs (multiple, nested), subqueries                                | Multiple CTEs and subqueries to simplify complex queries.                                  |
+| 3   | SQL              | Recursive CTEs, hierarchy/path problems                                     | Hierarchy/tree/path problems solved using recursive CTEs.                                  |
+| 4   | SQL              | Window fns I: ROW_NUMBER, RANK, DENSE_RANK, NTILE                           | Ranking and top‑N per group queries on sample datasets.                                    |
+| 5   | SQL              | Window fns II: SUM/AVG/COUNT OVER, LEAD/LAG, running totals                 | Running totals, period‑over‑period, LEAD/LAG, top‑N analytics queries.                     |
+| 6   | SQL              | SQL for analytics: business cases on schemas                                | 5–10 business questions answered using joins, CTEs, windows on your schemas.               |
+| 7   | DSA              | Arrays: two pointers, sliding window, prefix sum                            | 2–3 easy/medium array problems using these patterns.                                       |
+| 8   | DSA              | Hashing: maps/sets, frequency counting, lookups                             | Problems solved using HashMap/Set for counts and membership.                               |
+| 9   | DSA              | Stack & Queue, basic Linked List ops (reverse, cycle)                       | Classic stack/queue problems and core linked list operations.                              |
+| 10  | DSA              | Trees & Graphs: DFS/BFS, topo sort; light DP (Fibonacci/coin change)        | DFS/BFS/topo on graphs; 1–2 basic DP problems.                                             |
