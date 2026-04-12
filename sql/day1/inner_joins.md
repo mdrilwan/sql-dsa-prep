@@ -94,3 +94,19 @@ WHERE ot.order_price>1000;
 ```
 
 ---
+
+## Practice for INNER JOIN
+### Customer spend from payments
+- Output: customer_name, total_paid.
+- Use: customers, orders, payments.
+- Filter: only include customers whose total_paid > 500.
+### Category-wise revenue
+- Output: category, total_revenue.
+- Use: orders, order_items, products.
+- Total revenue = quantity * unit_price.
+### Customers who placed orders outside their signup month
+- Output: customer_name, signup_date, order_date.
+- Use: customers, orders.
+- Condition: EXTRACT(MONTH FROM order_date) <> EXTRACT(MONTH FROM signup_date).
+
+---
