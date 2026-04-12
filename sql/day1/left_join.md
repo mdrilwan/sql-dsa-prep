@@ -35,7 +35,7 @@ INNER JOIN customers c
 	ON r.region_id = c.region_id
 LEFT JOIN orders o
 	ON c.customer_id = o.customer_id
-WHERE r.region_name = 'Tamil Nadu'
+WHERE r.region_name = 'Tamil Nadu';
 ```
 
 ---
