@@ -94,8 +94,3 @@ WHERE ot.order_price>1000;
 ```
 
 ---
-
-## When to use INNER JOIN
-
-
----
