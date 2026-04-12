@@ -29,38 +29,13 @@ LEFT JOIN orders o
 ```sql
 -- Example: all Tamil Nadu customers and any of their orders (if present)
 SELECT
-    *
-FROM customers c
+	*
+FROM regions r
+INNER JOIN customers c
+	ON r.region_id = c.region_id
 LEFT JOIN orders o
-    ON c.customer_id = o.customer_id
-LEFT JOIN regions r
-    ON c.region_id = r.region_id
-WHERE r.region_name = 'Tamil Nadu';
-```
-
-> Note: Filtering on columns from the left table (customers/regions) keeps even customers without orders.  
-> If you filter on right-table columns in WHERE, you may remove NULLs and effectively turn it into an inner join.
-
-Example that **loses** customers with no orders:
-
-```sql
-SELECT
-    *
-FROM customers c
-LEFT JOIN orders o
-    ON c.customer_id = o.customer_id
-WHERE o.status = 'PAID';   -- This removes rows where o.* is NULL
-```
-
-Safer pattern when you truly want a left join:
-
-```sql
-SELECT
-    *
-FROM customers c
-LEFT JOIN orders o
-    ON c.customer_id = o.customer_id
-   AND o.status = 'PAID';
+	ON c.customer_id = o.customer_id
+WHERE r.region_name = 'Tamil Nadu'
 ```
 
 ---
@@ -70,16 +45,15 @@ LEFT JOIN orders o
 ```sql
 -- Example: all customers with their total paid amount (0 if no payments)
 SELECT
-    c.customer_id,
-    c.customer_name,
-    COALESCE(SUM(p.amount), 0) AS total_paid
+	c.customer_id,
+	c.customer_name,
+	COALESCE(SUM(p.amount),0) as total_paid
 FROM customers c
 LEFT JOIN orders o
-    ON c.customer_id = o.customer_id
+	ON c.customer_id = o.customer_id
 LEFT JOIN payments p
-    ON o.order_id = p.order_id
-GROUP BY c.customer_id, c.customer_name
-ORDER BY total_paid DESC;
+	ON o.order_id = p.order_id
+GROUP BY c.customer_id, c.customer_name;
 ```
 
 ---
@@ -89,21 +63,21 @@ ORDER BY total_paid DESC;
 ```sql
 -- Example: pre-aggregate order_totals, but keep all customers
 WITH order_totals AS (
-    SELECT
-        oi.order_id,
-        SUM(oi.quantity * oi.unit_price) AS order_total
-    FROM order_items oi
-    GROUP BY oi.order_id
+	SELECT
+		order_id,
+		SUM(quantity*unit_price) as total_price
+	FROM order_items
+	GROUP bY order_id
 )
 SELECT
-    c.customer_id,
-    c.customer_name,
-    COALESCE(SUM(ot.order_total), 0) AS total_order_value
+	c.customer_id,
+	c.customer_name,
+	COALESCE(SUM(ot.total_price), 0)
 FROM customers c
 LEFT JOIN orders o
-    ON c.customer_id = o.customer_id
+	ON c.customer_id=o.customer_id
 LEFT JOIN order_totals ot
-    ON o.order_id = ot.order_id
+	ON o.order_id=ot.order_id
 GROUP BY c.customer_id, c.customer_name;
 ```
 
