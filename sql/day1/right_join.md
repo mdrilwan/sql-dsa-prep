@@ -20,43 +20,28 @@ In practice, RIGHT JOIN is used less; most queries can be rewritten as a LEFT JO
 
 ```sql
 SELECT
-    o.order_id,
-    o.order_date,
-    c.customer_name,
-    c.email
+   	c.customer_id,
+	c.customer_name,
+	o.order_id,
+	o.order_date
 FROM customers c
 RIGHT JOIN orders o
     ON c.customer_id = o.customer_id;
 ```
-
-Equivalent LEFT JOIN version (recommended style):
-
-```sql
-SELECT
-    o.order_id,
-    o.order_date,
-    c.customer_name,
-    c.email
-FROM orders o
-LEFT JOIN customers c
-    ON o.customer_id = c.customer_id;
-```
-
----
 
 ## RIGHT JOIN + WHERE clause
 
 ```sql
 -- All orders in January 2026, with customers if available
 SELECT
-    o.order_id,
-    o.order_date,
-    c.customer_name
+   	c.customer_id,
+	c.customer_name,
+	o.order_id,
+	o.order_date
 FROM customers c
 RIGHT JOIN orders o
     ON c.customer_id = o.customer_id
-WHERE o.order_date >= '2026-01-01'
-  AND o.order_date <  '2026-02-01';
+WHERE o.order_date>='2026-01-01' AND o.order_date<='2026-01-05';
 ```
 
 ---
@@ -66,22 +51,19 @@ WHERE o.order_date >= '2026-01-01'
 ```sql
 -- Total payments per order, including orders that might not have customer details
 SELECT
-    o.order_id,
-    o.order_date,
-    SUM(p.amount) AS total_paid
+	o.order_id,
+	SUM(p.amount) AS total_paid
 FROM customers c
 RIGHT JOIN orders o
-    ON c.customer_id = o.customer_id
-LEFT JOIN payments p
-    ON o.order_id = p.order_id
-GROUP BY o.order_id, o.order_date;
+	ON c.customer_id = o.customer_id
+INNER JOIN payments p
+	ON o.order_id = p.order_id
+GROUP BY o.order_id;
 ```
 
 ---
 
 ## Practice for RIGHT JOIN
-
-> Try to write them first as RIGHT JOIN, then rewrite as LEFT JOIN.
 
 ### 1. All orders with customer info if present
 

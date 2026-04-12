@@ -47,7 +47,7 @@ WHERE r.region_name = 'Tamil Nadu'
 SELECT
 	c.customer_id,
 	c.customer_name,
-	COALESCE(SUM(p.amount),0) as total_paid
+	COALESCE(SUM(p.amount),0) AS total_paid
 FROM customers c
 LEFT JOIN orders o
 	ON c.customer_id = o.customer_id
@@ -65,7 +65,7 @@ GROUP BY c.customer_id, c.customer_name;
 WITH order_totals AS (
 	SELECT
 		order_id,
-		SUM(quantity*unit_price) as total_price
+		SUM(quantity*unit_price) AS total_price
 	FROM order_items
 	GROUP bY order_id
 )
