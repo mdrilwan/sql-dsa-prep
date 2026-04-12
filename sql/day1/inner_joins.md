@@ -3,10 +3,12 @@
 ---
 
 ## Basic syntax
+```sql
 SELECT <columns>
 FROM table_a a
 INNER JOIN table_b b
     ON a.key = b.key;
+```
 
 ## Example: On your schema (customers who have placed orders):
 ```sql
