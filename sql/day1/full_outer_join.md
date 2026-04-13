@@ -18,13 +18,13 @@ FULL OUTER JOIN table_b b
 
 ```sql
 SELECT
-    c.customer_id,
-    c.customer_name,
-    o.order_id,
-    o.order_date
+	c.customer_id,
+	c.customer_name,
+	o.order_id,
+	o.order_date
 FROM customers c
 FULL OUTER JOIN orders o
-    ON c.customer_id = o.customer_id;
+	ON c.customer_id = o.customer_id;
 ```
 
 - Rows where both match → normal joined row.
@@ -38,15 +38,14 @@ FULL OUTER JOIN orders o
 ```sql
 -- Only mismatched rows: customers without orders OR orders without customers
 SELECT
-    c.customer_id,
-    c.customer_name,
-    o.order_id,
-    o.order_date
+	c.customer_id,
+	c.customer_name,
+	o.order_id,
+	o.order_date
 FROM customers c
 FULL OUTER JOIN orders o
-    ON c.customer_id = o.customer_id
-WHERE c.customer_id IS NULL
-   OR o.order_id IS NULL;
+	ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL OR o.order_id IS NULL;
 ```
 
 Use case: data quality checks, referential integrity audits.
@@ -58,15 +57,15 @@ Use case: data quality checks, referential integrity audits.
 ```sql
 -- Count how many customers have orders vs how many orders have missing customers
 SELECT
-    CASE
-        WHEN c.customer_id IS NULL THEN 'Orphan Order'
-        WHEN o.order_id IS NULL THEN 'Customer Without Orders'
-        ELSE 'Matched'
-    END AS record_type,
-    COUNT(*) AS record_count
+	CASE
+		WHEN c.customer_id IS NULL THEN 'Missing customer'
+		WHEN o.order_id IS NULL THEN 'Missing order'
+		ELSE 'Ordered'
+	END AS record_type,
+	COUNT(*) AS orders_count
 FROM customers c
 FULL OUTER JOIN orders o
-    ON c.customer_id = o.customer_id
+	ON c.customer_id = o.customer_id
 GROUP BY record_type;
 ```
 
