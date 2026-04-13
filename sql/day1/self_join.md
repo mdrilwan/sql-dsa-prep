@@ -87,3 +87,23 @@ JOIN regions parent
 ```
 
 ---
+
+## Practice for SELF JOIN
+
+### 1. Get the list of users who have event_type as login and not purchase
+
+| user_id | event_type | event_time |
+| ------- | ---------- | ---------- |
+| 1       | login      | t1         |
+| 1       | addtocart  | t2         |
+| 1       | purchase   | t3         |
+| 2       | login      | t1         |
+| 2       | addtocart  | t2         |
+| 2       | purchase   | t3         |
+| 3       | login      | t1         |
+| 3       | addtocart  | t2         |
+| 4       | login      | t1         |
+| 4       | addtocart  | t2         |
+| 4       | purchase   | t3         |
+| 5       | login      | t1         |
+| 5       | addtocart  | t2         |
