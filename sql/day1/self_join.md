@@ -90,7 +90,7 @@ JOIN regions parent
 
 ## Practice for SELF JOIN
 
-### 1. Get the list of users who have event_type as login and not purchase
+### 1. From the below table, get the list of users who have event_type as login and not purchase
 
 | user_id | event_type | event_time |
 | ------- | ---------- | ---------- |
