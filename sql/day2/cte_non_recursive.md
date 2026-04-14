@@ -1,106 +1,158 @@
 # Non-Recursive CTEs
 
-## Concept
+## 1. Concept
 
-CTE (Common Table Expression) = named temporary result defined with `WITH`, visible only to that query.
-- Improves readability vs deeply nested subqueries.
-- Can be referenced multiple times. [web:328][web:335][web:332]
+CTE (Common Table Expression) = named temporary result defined with `WITH`, used only in that query.
 
-## Basic syntax
+Advantages:
+- Break complex queries into steps.
+- Improve readability vs deeply nested subqueries.
+- Allow reuse of intermediate results.
 
-```sql
-WITH cte_name AS (
-  SELECT ...
-  FROM ...
-  WHERE ...
-)
-SELECT *
-FROM cte_name;
-```
+We use:
+- orders, order_items, payments, customers, regions.
 
-## Example 1: Active users CTE
+---
 
-Step 1: define active users.
+## 2. Single CTE example – order_totals
 
 ```sql
-WITH active_users AS (
-  SELECT DISTINCT user_id
-  FROM events
-  WHERE event_type = 'login'
-)
-SELECT *
-FROM active_users;
-```
-
-Step 2: join CTE with orders/payments.
-
-```sql
-WITH active_users AS (
-  SELECT DISTINCT user_id
-  FROM events
-  WHERE event_type = 'login'
+WITH order_totals AS (
+  SELECT
+    oi.order_id,
+    SUM(oi.quantity * oi.unit_price) AS order_value
+  FROM order_items oi
+  GROUP BY oi.order_id
 )
 SELECT
-  a.user_id,
-  o.order_id
-FROM active_users a
-LEFT JOIN orders o
-  ON a.user_id = o.user_id;
+  o.order_id,
+  o.customer_id,
+  o.order_date,
+  ot.order_value
+FROM orders o
+JOIN order_totals ot
+  ON o.order_id = ot.order_id;
 ```
 
-## Example 2: CTE vs subquery equivalence
+- `order_totals` is a reusable named result set of `order_id` → `order_value`.
 
-Using subquery:
+---
 
-```sql
-SELECT t.user_id, t.total_events
-FROM (
-  SELECT user_id, COUNT(*) AS total_events
-  FROM events
-  GROUP BY user_id
-) t
-WHERE t.total_events > 5;
-```
-
-Using CTE:
+## 3. Two-step CTE – customer_totals built on top of order_totals
 
 ```sql
-WITH user_events AS (
-  SELECT user_id, COUNT(*) AS total_events
-  FROM events
-  GROUP BY user_id
-)
-SELECT user_id, total_events
-FROM user_events
-WHERE total_events > 5;
-```
-
-- Same logic, CTE is more readable and reusable. [web:326][web:335]
-
-## Multiple CTEs
-
-```sql
-WITH user_events AS (
-  SELECT user_id, COUNT(*) AS total_events
-  FROM events
-  GROUP BY user_id
+WITH order_totals AS (
+  SELECT
+    oi.order_id,
+    SUM(oi.quantity * oi.unit_price) AS order_value
+  FROM order_items oi
+  GROUP BY oi.order_id
 ),
-purchasers AS (
-  SELECT DISTINCT user_id
-  FROM events
-  WHERE event_type = 'purchase'
+customer_totals AS (
+  SELECT
+    o.customer_id,
+    SUM(ot.order_value) AS total_order_value
+  FROM orders o
+  JOIN order_totals ot
+    ON o.order_id = ot.order_id
+  GROUP BY o.customer_id
 )
 SELECT
-  ue.user_id,
-  ue.total_events,
-  CASE WHEN p.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_purchaser
-FROM user_events ue
-LEFT JOIN purchasers p
-  ON ue.user_id = p.user_id;
+  c.customer_id,
+  c.customer_name,
+  ct.total_order_value
+FROM customers c
+LEFT JOIN customer_totals ct
+  ON c.customer_id = ct.customer_id;
 ```
 
-## Practice
+- Step 1: `order_totals`.  
+- Step 2: `customer_totals` aggregates across orders.  
+- Final SELECT joins customers to their totals.
 
-1. CTE that gets user + total events, then select only users with total_events > 3.  
-2. Two CTEs: (1) logins per user, (2) purchases per user, then join them.  
-3. Replace one of your previous subquery solutions (e.g., users with login but no purchase) using a CTE for clarity.
+---
+
+## 4. Region-level revenue using multiple CTEs
+
+```sql
+WITH order_totals AS (
+  SELECT
+    oi.order_id,
+    SUM(oi.quantity * oi.unit_price) AS order_value
+  FROM order_items oi
+  GROUP BY oi.order_id
+),
+customer_totals AS (
+  SELECT
+    o.customer_id,
+    SUM(ot.order_value) AS total_order_value
+  FROM orders o
+  JOIN order_totals ot
+    ON o.order_id = ot.order_id
+  GROUP BY o.customer_id
+),
+region_totals AS (
+  SELECT
+    r.region_id,
+    r.region_name,
+    SUM(ct.total_order_value) AS region_order_value
+  FROM regions r
+  JOIN customers c
+    ON c.region_id = r.region_id
+  JOIN customer_totals ct
+    ON ct.customer_id = c.customer_id
+  GROUP BY r.region_id, r.region_name
+)
+SELECT *
+FROM region_totals;
+```
+
+- Chains: `order_items → orders → customers → regions`.  
+- Each step is separated into its own CTE for clarity.
+
+---
+
+## 5. CTE vs subquery equivalence
+
+Subquery version:
+
+```sql
+SELECT
+  o.customer_id,
+  SUM(oi.quantity * oi.unit_price) AS total_order_value
+FROM orders o
+JOIN order_items oi
+  ON o.order_id = oi.order_id
+GROUP BY o.customer_id;
+```
+
+CTE version:
+
+```sql
+WITH order_totals AS (
+  SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_value
+  FROM order_items
+  GROUP BY order_id
+)
+SELECT
+  o.customer_id,
+  SUM(ot.order_value) AS total_order_value
+FROM orders o
+JOIN order_totals ot
+  ON o.order_id = ot.order_id
+GROUP BY o.customer_id;
+```
+
+- Same result, but the CTE separates concerns.
+
+---
+
+## 6. Practice (non-recursive CTEs)
+
+Write CTE-based queries for:
+
+1. `WITH order_totals` then select only orders with `order_value > 500`.  
+2. Two CTEs: `logically_paid_orders` (orders that have a payment) and `unpaid_orders` (orders with no payment), then select from both to show counts.  
+3. `WITH customer_totals` (total_paid from payments), then join with `regions` to show total_paid per region.

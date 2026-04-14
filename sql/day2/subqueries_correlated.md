@@ -1,63 +1,153 @@
 # Correlated Subqueries
 
-## Concept
+## 1. Concept
 
 A correlated subquery:
-- Uses columns from the outer query.
-- Runs once per row of the outer query. [web:331][web:333]
+- References columns from the outer query.
+- Is evaluated per outer row.
 
-## Example pattern
+We will use:
+- products (category-level comparisons)
+- customers + regions (if you join them)
+- orders + payments.
 
-```sql
-SELECT ...
-FROM outer_table o
-WHERE some_column >
-  (
-    SELECT AVG(x)
-    FROM inner_table i
-    WHERE i.key = o.key
-  );
-```
+---
 
-## Example: events – user with above-average events
-
-```sql
-SELECT e1.user_id
-FROM events e1
-GROUP BY e1.user_id
-HAVING COUNT(*) >
-  (
-    SELECT AVG(user_event_count)
-    FROM (
-      SELECT e2.user_id, COUNT(*) AS user_event_count
-      FROM events e2
-      GROUP BY e2.user_id
-    ) t
-  );
-```
-
-More classic example: salary greater than department average. [web:331]
+## 2. Classic pattern: product vs category average
 
 ```sql
 SELECT
-  e1.employee_id,
-  e1.salary,
-  e1.department_id
-FROM employees e1
-WHERE e1.salary >
+  p.product_id,
+  p.product_name,
+  p.category,
+  p.price
+FROM products p
+WHERE p.price >
   (
-    SELECT AVG(e2.salary)
-    FROM employees e2
-    WHERE e2.department_id = e1.department_id
+    SELECT AVG(p2.price)
+    FROM products p2
+    WHERE p2.category = p.category
   );
 ```
 
-## When to use
+- Inner query uses `p.category` from outer row.
+- Returns products priced above their own category’s average.
 
-- Row-by-row comparisons (per user, per department, per region).  
-- Filtering based on a value calculated within each group context. [web:333][web:336]
+---
 
-## Practice
+## 3. Customer vs all customers (total paid)
 
-1. For each user, select them only if their event count is greater than the average count of users in the same region (assuming `user_region` table).  
-2. Using your `events`, pick users whose number of `purchase` events is greater than their number of `login` events (subquery inside WHERE that counts per user).
+First build total paid per customer using a derived table, then correlated compare:
+
+```sql
+-- total per customer as a derived table
+SELECT
+  t.customer_id,
+  t.total_paid
+FROM (
+  SELECT
+    o.customer_id,
+    SUM(p.amount) AS total_paid
+  FROM orders o
+  JOIN payments p
+    ON o.order_id = p.order_id
+  GROUP BY o.customer_id
+) t;
+```
+
+Now “greater than average of all customers” using a correlated style:
+
+```sql
+SELECT
+  t.customer_id,
+  t.total_paid
+FROM (
+  SELECT
+    o.customer_id,
+    SUM(p.amount) AS total_paid
+  FROM orders o
+  JOIN payments p
+    ON o.order_id = p.order_id
+  GROUP BY o.customer_id
+) t
+WHERE t.total_paid >
+  (
+    SELECT AVG(total_paid)
+    FROM (
+      SELECT
+        o2.customer_id,
+        SUM(p2.amount) AS total_paid
+      FROM orders o2
+      JOIN payments p2
+        ON o2.order_id = p2.order_id
+      GROUP BY o2.customer_id
+    ) x
+  );
+```
+
+- Outer query row `t` is compared against an average computed over all customers.
+
+---
+
+## 4. Order value vs customer’s average order value
+
+```sql
+-- First compute order_value per order using subquery or CTE
+SELECT
+  o.order_id,
+  o.customer_id,
+  ot.order_value
+FROM orders o
+JOIN (
+  SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_value
+  FROM order_items
+  GROUP BY order_id
+) ot
+  ON o.order_id = ot.order_id;
+```
+
+Now use a correlated subquery to pick orders whose value > that customer’s average order value:
+
+```sql
+SELECT
+  o.order_id,
+  o.customer_id,
+  ot.order_value
+FROM orders o
+JOIN (
+  SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_value
+  FROM order_items
+  GROUP BY order_id
+) ot
+  ON o.order_id = ot.order_id
+WHERE ot.order_value >
+  (
+    SELECT AVG(ot2.order_value)
+    FROM orders o2
+    JOIN (
+      SELECT
+        order_id,
+        SUM(quantity * unit_price) AS order_value
+      FROM order_items
+      GROUP BY order_id
+    ) ot2
+      ON o2.order_id = ot2.order_id
+    WHERE o2.customer_id = o.customer_id
+  );
+```
+
+- Inner query uses `o.customer_id` from outer query.
+
+---
+
+## 5. Practice (correlated subqueries)
+
+Write your own queries for:
+
+1. Products whose price is **below** the average price of their category.  
+2. Customers whose total number of orders is **greater than** the average number of orders per customer.  
+3. Orders whose payment amount (from `payments`) is **greater than** the average payment amount for that customer.
