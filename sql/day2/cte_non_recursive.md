@@ -1,4 +1,4 @@
-# Day 2 – Non-Recursive CTEs
+# Non-Recursive CTEs
 
 ## Concept
 

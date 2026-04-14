@@ -1,4 +1,4 @@
-# Day 2 – Basic Subqueries
+# Basic Subqueries
 
 ## Concept
 
