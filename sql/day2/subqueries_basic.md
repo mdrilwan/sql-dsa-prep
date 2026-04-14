@@ -113,6 +113,6 @@ FROM customers c;
 
 Write queries yourself for:
 
-1. Products whose price is **above the average price in the same category** (this can be done with subquery in WHERE or correlated, but here try basic form).  
-2. Customers who have placed **more than 2 orders** (you can use subquery in WHERE with GROUP BY in the subquery).  
+1. Products whose price is **above the average price in the same category**.  
+2. Customers who have placed **more than 2 orders**.  
 3. For each product, show `product_id, product_name, total_quantity_sold` using a subquery in SELECT on `order_items`.
