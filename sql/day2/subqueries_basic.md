@@ -29,26 +29,6 @@ WHERE price >
 - Inner query calculates overall average price.
 - Outer query filters products above that value.
 
-### 2.2 Customers whose total paid > 1000
-
-```sql
-SELECT
-  c.customer_id,
-  c.customer_name
-FROM customers c
-WHERE c.customer_id IN (
-  SELECT o.customer_id
-  FROM orders o
-  JOIN payments p
-    ON o.order_id = p.order_id
-  GROUP BY o.customer_id
-  HAVING SUM(p.amount) > 1000
-);
-```
-
-- Inner query finds customers with total payments > 1000.
-- Outer query returns customer details for those IDs.
-
 ---
 
 ## 3. Subqueries in FROM (derived tables)
