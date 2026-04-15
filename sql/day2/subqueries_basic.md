@@ -69,8 +69,6 @@ JOIN (
   ON o.order_id = ot.order_id;
 ```
 
-- Adds header info (customer, date) to each order total.
-
 ---
 
 ## 4. Subqueries in SELECT (scalar subqueries)
@@ -79,15 +77,15 @@ JOIN (
 
 ```sql
 SELECT
-  c.customer_id,
-  c.customer_name,
-  (
-    SELECT COALESCE(SUM(p.amount), 0)
-    FROM orders o
-    JOIN payments p
-      ON o.order_id = p.order_id
-    WHERE o.customer_id = c.customer_id
-  ) AS total_paid
+	c.customer_id,
+	c.customer_name,
+	(	SELECT
+			COALESCE(SUM(p.amount), 0)
+		FROM orders o
+		LEFT JOIN payments p
+			ON o.order_id = p.order_id
+		WHERE o.customer_id = c.customer_id
+	) AS total_paid
 FROM customers c;
 ```
 
@@ -97,13 +95,13 @@ FROM customers c;
 
 ```sql
 SELECT
-  c.customer_id,
-  c.customer_name,
-  (
-    SELECT COUNT(*)
-    FROM orders o
-    WHERE o.customer_id = c.customer_id
-  ) AS order_count
+	c.customer_id,
+	c.customer_name,
+	(	SELECT
+			COUNT(*)
+		FROM orders o
+		WHERE o.customer_id = c.customer_id
+	) AS order_count
 FROM customers c;
 ```
 
