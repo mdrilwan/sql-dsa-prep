@@ -6,11 +6,6 @@ A correlated subquery:
 - References columns from the outer query.
 - Is evaluated per outer row.
 
-We will use:
-- products (category-level comparisons)
-- customers + regions (if you join them)
-- orders + payments.
-
 ---
 
 ## 2. Classic pattern: product vs category average
